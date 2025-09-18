@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>e-Clinic AI Medical Assistant</title>
+    <style>
+        :root {
+            --primary: #2a6b8c;
+            --primary-light: #e0f0f7;
+            --secondary: #4caf50;
+            --danger: #f44336;
+            --dark: #333;
+            --light: #f4f4f4;
+            --grey: #777;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        #chatbox {
+            height: 400px;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            max-width: 80%;
+            padding: 12px 15px;
+            border-radius: 18px;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .bot-message {
+            align-self: flex-start;
+            background-color: var(--primary-light);
+            color: var(--dark);
+            border-bottom-left-radius: 5px;
+        }
+
+        .user-message {
+            align-self: flex-end;
+            background-color: var(--primary);
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+
+        .options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .option-btn {
+            background-color: white;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .option-btn:hover {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        /* Style for the image option container */
+        .image-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 180px;
+            text-align: center;
+            cursor: pointer;
+            padding: 15px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            border-radius: 15px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .image-option span {
+            font-size: 0.9rem;
+            margin-top: 5px;
+            padding: 6px 12px;
+            border: 1px solid var(--primary);
+            border-radius: 12px;
+            background-color: white;
+            color: var(--primary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-block;
+        }
+
+        .image-option:hover,
+        .image-option:focus {
+            background-color: var(--primary);
+            color: white;
+            outline: none;
+        }
+
+        .image-option img {
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            margin-bottom: 8px;
+        }
+
+        .image-options-container {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin-top: 25px;
+        }
+
+        #user-input {
+            display: flex;
+            border-top: 1px solid #ddd;
+            padding: 15px;
+        }
+
+        #user-input input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            margin-right: 10px;
+        }
+
+        #send-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+
+        #send-btn:hover {
+            background-color: #1f5a78;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        #prescription-container {
+            padding: 30px;
+        }
+
+        .prescription-header {
+            text-align: center;
+            margin-bottom: 25px;
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 10px;
+        }
+
+        .prescription-body {
+            font-size: 0.95rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: var(--primary-light);
+        }
+
+        .advice-list {
+            list-style-position: inside;
+            margin: 15px 0;
+        }
+
+        .disclaimer {
+            font-size: 0.8rem;
+            color: var(--grey);
+            margin-top: 25px;
+            font-style: italic;
+        }
+
+        #print-btn {
+            background-color: var(--secondary);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: block;
+            margin: 20px auto;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+
+            #prescription-container,
+            #prescription-container * {
+                visibility: visible;
+            }
+
+            #prescription-container {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+
+            #print-btn {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>TeleMed AI Assistant</h1>
+            <p>Describe your symptoms. I will help generate a report for your doctor.</p>
+            <p><small>Remember: I am not a licensed physician. Always consult a doctor.</small></p>
+        </header>
+
+        <div id="chatbox"></div>
+
+        <div id="user-input">
+            <input type="text" id="user-input-field" placeholder="Type your answer or select an option above...">
+            <button id="send-btn">Send</button>
+        </div>
+
+        <div id="prescription-container" class="hidden"></div>
+    </div>
+
+    <script>
+        // ===== DISEASE & QUESTION DATASET =====
+        const diseaseData = {
+    "Headache": {
+        questions: [
+            { text: "When did the headache begin?", key: "onset", options: ["Less than 24 hours ago (Sudden)", "1-2 days ago", "More than 3 days ago (Gradual)"] }
+        ],
+        assessments: ["Migraine", "Tension Headache", "Cluster Headache", "Sinus Headache"],
+        medications: [
+            { name: "Diclofenac", dosage: "50 mg", frequency: "2 times/day", duration: "5 days", instructions: "Take after meals" },
+            { name: "Paracetamol", dosage: "500 mg", frequency: "3 times/day", duration: "3 days", instructions: "For pain relief" }
+        ],
+        advice: ["Rest in a quiet, dark room", "Stay hydrated", "Avoid bright lights and loud noise"]
+    },
+
+    "Fever": {
+        questions: [
+            { text: "What is your current temperature?", key: "feverLevel", options: ["I don't know", "Below 100.4°F - Low-grade", "100.4°F to 102.2°F - Moderate", "Above 102.2°F - High"] }
+        ],
+        assessments: ["Viral Infection", "Influenza (Flu)", "COVID-19 (Suspected)", "Other Viral Fever"],
+        medications: [
+            { name: "Paracetamol", dosage: "500 mg", frequency: "Every 6 hours", duration: "3 days", instructions: "Do not exceed 4g/day" },
+            { name: "Ibuprofen", dosage: "200 mg", frequency: "Every 8 hours", duration: "3 days", instructions: "Take after meals" }
+        ],
+        advice: ["Drink plenty of fluids", "Rest adequately", "Monitor temperature regularly"]
+    },
+
+    "Cough": {
+        questions: [
+            { text: "What kind of cough is it?", key: "coughType", options: ["Dry", "Wet with phlegm", "Worse at night"] }
+        ],
+        assessments: ["Acute Bronchitis", "Common Cold", "Allergic Cough"],
+        medications: [
+            { name: "Chlorpheniramine", dosage: "4 mg", frequency: "3 times/day", duration: "5 days", instructions: "For allergy relief" },
+            { name: "Salbutamol Inhaler", dosage: "2 puffs", frequency: "As needed", duration: "5 days", instructions: "Shake before use" }
+        ],
+        advice: ["Stay hydrated", "Use a humidifier if air is dry", "Avoid smoking and dust exposure"]
+    },
+
+    "Cold": {
+        questions: [
+            { text: "Do you have a runny or stuffy nose?", key: "nose", options: ["Yes", "No"] }
+        ],
+        assessments: ["Common Cold", "Allergic Rhinitis", "Viral Infection"],
+        medications: [
+            { name: "Diphenhydramine", dosage: "25 mg", frequency: "2 times/day", duration: "5 days", instructions: "Helps with sneezing" },
+            { name: "Pseudoephedrine", dosage: "30 mg", frequency: "3 times/day", duration: "3 days", instructions: "For nasal congestion" }
+        ],
+        advice: ["Rest well", "Drink warm fluids", "Use saline nasal drops if needed"]
+    },
+
+    "Body Pain": {
+        questions: [
+            { text: "Where do you feel the pain?", key: "painLocation", options: ["Arms/Legs", "Back", "Neck", "Whole body"] }
+        ],
+        assessments: ["Muscle Strain", "Fatigue-related pain", "Viral Myalgia"],
+        medications: [
+            { name: "Acetaminophen", dosage: "500 mg", frequency: "Every 6 hours", duration: "3 days", instructions: "For pain relief" },
+            { name: "Ibuprofen", dosage: "200 mg", frequency: "Every 8 hours", duration: "3 days", instructions: "Take after meals" }
+        ],
+        advice: ["Gentle stretching exercises", "Apply warm compress if needed", "Rest the affected muscles"]
+    },
+
+    "Vomit": {
+        questions: [
+            { text: "How many times have you vomited?", key: "vomitCount", options: ["Once", "2-3 times", "More than 3 times"] }
+        ],
+        assessments: ["Gastroenteritis", "Food Poisoning", "Stomach Flu"],
+        medications: [
+            { name: "ORS", dosage: "1 packet in 1 liter water", frequency: "Every 2-4 hours", duration: "As needed", instructions: "To prevent dehydration" },
+            { name: "Ondansetron", dosage: "4 mg", frequency: "2 times/day", duration: "1-2 days", instructions: "For nausea relief" }
+        ],
+        advice: ["Avoid solid food initially", "Sip water frequently", "Rest and monitor symptoms"]
+    }
+};
+
+
+        // ===== KEYWORD MAPPING =====
+        const diseaseKeywords = {
+            "Headache": ["headache", "migraine", "pain in head", "head hurts"],
+            "Fever": ["fever", "temperature", "hot", "cold and fever", "high fever"],
+            "Cough": ["cough", "coughing", "dry cough", "wet cough"],
+            "Cold": ["cold", "runny nose", "stuffy nose", "sneeze"],
+            "Body Pain": ["body pain", "muscle pain", "joint pain", "pain in body"],
+            "Vomit": ["vomit", "throw up", "nausea", "vomiting"]
+        };
+
+        // ===== STATE MANAGEMENT =====
+        let currentState = { currentDisease: null, currentQuestionIndex: 0, userResponses: {} };
+
+        // ===== DOM ELEMENTS =====
+        const chatbox = document.getElementById('chatbox');
+        const userInputField = document.getElementById('user-input-field');
+        const sendBtn = document.getElementById('send-btn');
+        const prescriptionContainer = document.getElementById('prescription-container');
+
+        // ===== INITIALIZE CHAT =====
+        function initChat() {
+            appendMessage("bot", "Hello. I am an AI medical assistant. Please describe your symptoms. I am not a licensed physician.");
+            setTimeout(() => askInitialQuestion(), 1000);
+        }
+
+        function askInitialQuestion() {
+            const initialOptions = Object.keys(diseaseData);
+            appendMessage("bot", "Let's begin. What brings you in today?",);
+
+            const imageOptionsContainer = document.createElement('div');
+            imageOptionsContainer.classList.add('image-options-container');
+
+            const imageOptions = [
+                { symptom: "Headache", src: "headache.jpg", alt: "Headache Icon" },
+                { symptom: "Fever", src: "fever.jpg", alt: "fever Icon" },
+                { symptom: "Cough", src: "cough.jpg", alt: "cough Icon" },
+                { symptom: "Cold", src: "cold.jpg", alt: "cold Icon" },
+                { symptom: "Body Pain", src: "body.jpg", alt: "bodypain Icon" },
+                { symptom: "Vomit", src: "vomit.jpg", alt: "vomit Icon" }
+            ];
+
+            imageOptions.forEach(option => {
+                const imageOptionDiv = document.createElement('div');
+                imageOptionDiv.classList.add('image-option');
+                imageOptionDiv.tabIndex = 0;
+                imageOptionDiv.setAttribute('aria-label', option.symptom);
+                imageOptionDiv.addEventListener('click', () => handleOptionClick(option.symptom));
+                imageOptionDiv.addEventListener('keypress', (e) => { if (e.key === 'Enter' || e.key === ' ') handleOptionClick(option.symptom); });
+
+                const image = document.createElement('img');
+                image.src = option.src;
+                image.alt = option.alt;
+
+                const label = document.createElement('span');
+                label.textContent = option.symptom;
+
+                imageOptionDiv.appendChild(image);
+                imageOptionDiv.appendChild(label);
+                imageOptionsContainer.appendChild(imageOptionDiv);
+            });
+
+            chatbox.appendChild(imageOptionsContainer);
+            chatbox.scrollTop = chatbox.scrollHeight;
+        }
+
+        // ===== CHAT FUNCTIONS =====
+        function appendMessage(sender, text, options = null) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', sender === 'bot' ? 'bot-message' : 'user-message');
+            messageDiv.textContent = text;
+
+            chatbox.appendChild(messageDiv);
+            if (options && sender === 'bot') {
+                const optionsDiv = document.createElement('div');
+                optionsDiv.classList.add('options');
+                options.forEach(option => {
+                    const button = document.createElement('button');
+                    button.classList.add('option-btn');
+                    button.textContent = option;
+                    button.addEventListener('click', () => handleOptionClick(option));
+                    optionsDiv.appendChild(button);
+                });
+                chatbox.appendChild(optionsDiv);
+            }
+            chatbox.scrollTop = chatbox.scrollHeight;
+        }
+
+        function handleOptionClick(option) {
+            appendMessage("user", option);
+            processUserInput(option);
+        }
+
+        function processUserInput(input) {
+            if (!currentState.currentDisease) {
+                const lowerInput = input.toLowerCase();
+                let detectedDisease = null;
+                for (const disease in diseaseKeywords) {
+                    if (diseaseKeywords[disease].some(keyword => lowerInput.includes(keyword))) {
+                        detectedDisease = disease;
+                        break;
+                    }
+                }
+                if (detectedDisease) {
+                    currentState.currentDisease = detectedDisease;
+                    currentState.userResponses['primarySymptom'] = detectedDisease;
+                    currentState.currentQuestionIndex = 0;
+                    askNextQuestion();
+                } else {
+                    appendMessage("bot", "I'm not sure I understand. Please select one of the common symptoms listed below.", Object.keys(diseaseData));
+                }
+            } else {
+                const currentDisease = diseaseData[currentState.currentDisease];
+                const currentQuestion = currentDisease.questions[currentState.currentQuestionIndex];
+                currentState.userResponses[currentQuestion.key] = input;
+
+                currentState.currentQuestionIndex++;
+                if (currentState.currentQuestionIndex < currentDisease.questions.length) {
+                    setTimeout(askNextQuestion, 600);
+                } else {
+                    setTimeout(generatePrescription, 1000);
+                }
+            }
+        }
+
+        function askNextQuestion() {
+            const currentDisease = diseaseData[currentState.currentDisease];
+            const nextQuestion = currentDisease.questions[currentState.currentQuestionIndex];
+            appendMessage("bot", nextQuestion.text, nextQuestion.options);
+        }
+
+        // ===== PRESCRIPTION GENERATION =====
+function generatePrescription() {
+    const disease = currentState.currentDisease;
+    const data = diseaseData[disease];
+
+    appendMessage("bot", "Thank you. Generating a summary and sample prescription...");
+
+    document.getElementById('user-input').classList.add('hidden');
+    chatbox.classList.add('hidden');
+    prescriptionContainer.classList.remove('hidden');
+
+    const consultationId = 'AI-' + Math.floor(1000 + Math.random() * 9000);
+    const today = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-');
+
+    // Generate medication rows dynamically
+    const medicationRows = data.medications.map((med, i) => `
+        <tr>
+            <td>${i + 1}.</td>
+            <td>${med.name}</td>
+            <td>${med.dosage}</td>
+            <td>${med.frequency}</td>
+            <td>${med.duration}</td>
+            <td>${med.instructions}</td>
+        </tr>
+    `).join('');
+
+    // Generate advice list dynamically
+    const adviceList = data.advice.map(a => `<li>${a}</li>`).join('');
+
+    prescriptionContainer.innerHTML = `
+        <div class="prescription-header">
+            <h2>TeleMed</h2>
+            <h3>Telemedicine Consultation Report</h3>
+        </div>
+        <div class="prescription-body">
+            <p><strong>Date:</strong> ${today}</p>
+            <p><strong>Patient Name:</strong> <span contenteditable="true">[Please Enter Name]</span></p>
+            <p><strong>Age / Sex:</strong> <span contenteditable="true">[Age] / [Sex]</span></p>
+            <p><strong>Doctor:</strong> AI Medical Assistant (For review by Dr. <span contenteditable="true">[Doctor's Name]</span>)</p>
+            <p><strong>Consultation ID:</strong> ${consultationId}</p>
+            <hr style="margin: 20px 0;">
+            <p><strong>Presenting Complaint:</strong> ${currentState.userResponses.primarySymptom}.</p>
+            <p><strong>History of Presenting Illness:</strong> Based on the user's reported symptoms of ${Object.values(currentState.userResponses).slice(1).join(', ')}.</p>
+            <p><strong>Assessment (AI-Generated Considerations):</strong></p>
+            <ul>${data.assessments.map(a => `<li>${a}</li>`).join('')}</ul>
+            <p><strong>R<small>x</small></strong></p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>S.No</th><th>Medication Name</th><th>Dosage</th><th>Frequency</th><th>Duration</th><th>Instructions</th>
+                    </tr>
+                </thead>
+                <tbody>${medicationRows}</tbody>
+            </table>
+            <p><strong>Non-Pharmacological Advice:</strong></p>
+            <ul class="advice-list">${adviceList}</ul>
+            <p class="disclaimer">*This prescription is AI-generated and should be verified by a licensed medical professional.</p>
+            <button id="print-btn" onclick="window.print()">Print / Save PDF</button>
+        </div>
+    `;
+}
+
+
+        // ===== EVENT LISTENERS =====
+        sendBtn.addEventListener('click', () => {
+            const input = userInputField.value.trim();
+            if (input) {
+                appendMessage("user", input);
+                userInputField.value = '';
+                processUserInput(input);
+            }
+        });
+
+        userInputField.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendBtn.click(); });
+
+        // ===== INITIALIZE =====
+        initChat();
+    </script>
+</body>
+
+</html>
